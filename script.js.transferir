@@ -1,0 +1,197 @@
+// script.js
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Menu Mobile
+  const navbarToggler = document.getElementById('navbarToggler');
+  const navbarMenu = document.querySelector('.navbar-nav');
+  
+  navbarToggler.addEventListener('click', function() {
+      navbarMenu.classList.toggle('active');
+      this.classList.toggle('active');
+  });
+  
+  // Fechar menu ao clicar em um link
+  const navLinks = document.querySelectorAll('.nav-link');
+  navLinks.forEach(link => {
+      link.addEventListener('click', function() {
+          navbarMenu.classList.remove('active');
+          navbarToggler.classList.remove('active');
+          
+          // Ativar link clicado
+          navLinks.forEach(item => item.classList.remove('active'));
+          this.classList.add('active');
+      });
+  });
+  
+  // Hero Slideshow
+  const slides = document.querySelectorAll('.slide');
+  let currentSlide = 0;
+  
+  function showSlide(n) {
+      slides.forEach(slide => slide.classList.remove('active'));
+      currentSlide = (n + slides.length) % slides.length;
+      slides[currentSlide].classList.add('active');
+  }
+  
+  // Auto-advance slides every 5 seconds
+  setInterval(() => {
+      showSlide(currentSlide + 1);
+  }, 5000);
+  
+  // Smooth scrolling for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          const targetId = this.getAttribute('href');
+          if (targetId === '#') return;
+          
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+              window.scrollTo({
+                  top: targetElement.offsetTop - 80,
+                  behavior: 'smooth'
+              });
+          }
+      });
+  });
+  
+  // Sticky navbar on scroll
+  window.addEventListener('scroll', function() {
+      const navbar = document.querySelector('.navbar');
+      if (window.scrollY > 100) {
+          navbar.classList.add('sticky');
+      } else {
+          navbar.classList.remove('sticky');
+      }
+      
+      // Show/hide back to top button
+      const backToTop = document.getElementById('backToTop');
+      if (window.scrollY > 300) {
+          backToTop.classList.add('show');
+      } else {
+          backToTop.classList.remove('show');
+      }
+  });
+  
+  // Animate stats counter
+  const statNumbers = document.querySelectorAll('.stat-number');
+  
+  function animateStats() {
+      statNumbers.forEach(stat => {
+          const target = parseInt(stat.getAttribute('data-count'));
+          const duration = 2000; // 2 seconds
+          const increment = target / (duration / 16); // 60fps
+          
+          let current = 0;
+          const timer = setInterval(() => {
+              current += increment;
+              if (current >= target) {
+                  clearInterval(timer);
+                  current = target;
+              }
+              stat.textContent = Math.floor(current);
+          }, 16);
+      });
+  }
+  
+  // Intersection Observer for animations
+  const observerOptions = {
+      threshold: 0.1
+  };
+  
+  const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+          if (entry.isIntersecting) {
+              if (entry.target.classList.contains('stats-container')) {
+                  animateStats();
+              }
+              entry.target.classList.add('animated');
+          }
+      });
+  }, observerOptions);
+  
+  // Observe elements that should animate
+  document.querySelectorAll('.feature-item, .service-card, .stats-container, .testimonial').forEach(el => {
+      observer.observe(el);
+  });
+  
+  // Testimonials slider
+  const testimonials = document.querySelectorAll('.testimonial');
+  let currentTestimonial = 0;
+  
+  function showTestimonial(n) {
+      testimonials.forEach(testimonial => testimonial.classList.remove('active'));
+      currentTestimonial = (n + testimonials.length) % testimonials.length;
+      testimonials[currentTestimonial].classList.add('active');
+  }
+  
+  // Auto-advance testimonials every 7 seconds
+  setInterval(() => {
+      showTestimonial(currentTestimonial + 1);
+  }, 7000);
+  
+  // Form submission with EmailJS
+  const contactForm = document.getElementById('contactForm');
+  const formStatus = document.getElementById('formStatus');
+  
+  if (contactForm) {
+      contactForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          // Get form data
+          const formData = {
+              name: this.name.value,
+              email: this.email.value,
+              phone: this.phone.value,
+              subject: this.subject.value,
+              message: this.message.value
+          };
+          
+          // Show loading state
+          const submitBtn = this.querySelector('button[type="submit"]');
+          const originalBtnText = submitBtn.querySelector('.btn-text').textContent;
+          submitBtn.querySelector('.btn-text').textContent = 'Enviando...';
+          submitBtn.disabled = true;
+          
+          // Send email using EmailJS
+          emailjs.send('service_your_service_id', 'template_your_template_id', formData)
+              .then(() => {
+                  formStatus.textContent = 'Mensagem enviada com sucesso!';
+                  formStatus.style.color = '#4CAF50';
+                  contactForm.reset();
+              })
+              .catch((error) => {
+                  formStatus.textContent = 'Erro ao enviar mensagem. Por favor, tente novamente.';
+                  formStatus.style.color = '#F44336';
+                  console.error('Error:', error);
+              })
+              .finally(() => {
+                  submitBtn.querySelector('.btn-text').textContent = originalBtnText;
+                  submitBtn.disabled = false;
+                  
+                  // Hide status message after 5 seconds
+                  setTimeout(() => {
+                      formStatus.textContent = '';
+                  }, 5000);
+              });
+      });
+  }
+  
+  // Initialize EmailJS (replace with your actual user ID)
+  emailjs.init('oQyxnoDIhlVE6URjK');
+});
+
+// Google Maps initialization
+function initMap() {
+  const location = { lat: -25.9689875, lng: 32.5829876 };
+  const map = new google.maps.Map(document.querySelector('.map-container iframe'), {
+      zoom: 15,
+      center: location
+  });
+  new google.maps.Marker({
+      position: location,
+      map: map,
+      title: 'EPS Consultoria'
+  });
+}
